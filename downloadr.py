@@ -9,8 +9,9 @@ import sys
 from time import gmtime, strftime
 # from urllib2 import HTTPError, URLError, urlopen
 
-REQUEST_HEADERS = {'User-Agent': ('Mozilla/5.0 (Android; Mobile; rv:25.0) '
-                                  'Gecko/25.0 Firefox/25.0'),
+REQUEST_HEADERS = {
+    'User-Agent': ('Mozilla/5.0 (Android; Mobile; rv:25.0) '
+                   'Gecko/25.0 Firefox/25.0'),
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Language': 'en-US,en;q=0.5',
     'Accept-Encoding': 'gzip, deflate',
@@ -28,7 +29,7 @@ def connect(url):
     session = requests.Session()
     session.headers = REQUEST_HEADERS
     session.timeout = 3
-    try:# the request will follow redirects to https://, www., m., etc.
+    try:  # Request will follow redirects to https://, www., m., etc.
         return session.get("http://" + url)
     except requests.exceptions.RequestException as e:
         print("Exception: ", e, url)
@@ -39,12 +40,7 @@ def downloadFile(url, dir):
     url = url.strip()
     try:
         print("Downloading: ", url)
-        if url.startswith("http://"):
-            url = url[7:]
-        if url.startswith("https://"):
-            url = url[8:]
-        urlhost = url.split("/")[0]
-        response = connect(urlhost)
+        response = connect(url)
         hash = hashlib.md5()
         hash.update(url)
         dir = hash.hexdigest()[:2]
@@ -53,7 +49,7 @@ def downloadFile(url, dir):
         ext = magic.from_buffer(response.content).split()[0].lower()
         if "html" in ext:
             ext = "html.txt"
-        filename = dir + "/" + urlhost + "_" + hash.hexdigest() + "." + ext
+        filename = dir + "/" + url + "_" + hash.hexdigest() + "." + ext
         with open(filename, "wb") as local_file:
             local_file.write(response.text)
             local_file.close()

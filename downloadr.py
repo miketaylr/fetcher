@@ -27,6 +27,7 @@ def createDir():
 def connect(url):
     session = requests.Session()
     session.headers = REQUEST_HEADERS
+    session.timeout = 3
     try:# the request will follow redirects to https://, www., m., etc.
         return session.get("http://" + url)
     except requests.exceptions.RequestException as e:
@@ -44,23 +45,22 @@ def downloadFile(url, dir):
             url = url[8:]
         urlhost = url.split("/")[0]
         urlpath = "/".join(url.split("/")[1:])
-        f = connect(urlhost)
+        response = connect(urlhost)
         hash = hashlib.md5()
         hash.update(url)
         dir = hash.hexdigest()[:2]
         if not os.path.exists(dir):
             os.mkdir(dir)
-        buffer = f.raw.read()
-        ext = magic.from_buffer(buffer).split()[0].lower()
+        ext = magic.from_buffer(response.content).split()[0].lower()
         if "html" in ext:
             ext = "html.txt"
         filename = dir + "/" + urlhost + "_" + hash.hexdigest() + "." + ext
         with open(filename, "wb") as local_file:
-            local_file.write(buffer)
+            local_file.write(response.text)
             local_file.close()
-        with open(filename + ".hdr.txt", "wb") as local_file:
-            local_file.write(str(f.status_code) + "\n")
-            for k, v in f.headers.iteritems():
+        with open(filename.rstrip(".txt") + ".hdr.txt", "wb") as local_file:
+            local_file.write(str(response.status_code) + "\n")
+            for k, v in response.headers.iteritems():
                 local_file.write("{}: {}\n".format(k, v))
             local_file.close()
     except Exception as e:

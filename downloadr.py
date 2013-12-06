@@ -9,11 +9,11 @@ import sys
 from time import gmtime, strftime
 # from urllib2 import HTTPError, URLError, urlopen
 
-REQUEST_HEADERS = {'User-Agent': ('Mozilla/5.0 (Android; Mobile; rv:25.0) ')
+REQUEST_HEADERS = {'User-Agent': ('Mozilla/5.0 (Android; Mobile; rv:25.0) '
                                   'Gecko/25.0 Firefox/25.0'),
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Language': 'en-US,en;q=0.5',
-    'Accept-Encoding': 'gzip, deflate'
+    'Accept-Encoding': 'gzip, deflate',
     'Connection': 'keep-alive'
 }
 
@@ -26,27 +26,11 @@ def createDir():
 
 def connect(url):
     session = requests.Session()
-    session.max_redirects = 5
-    session.get(url,
-    try:
-        f = urlopen("http://" + url)
-        return f
-    except URLError, e:
-        try:
-            f = urlopen("https://" + url)
-            return f
-        except URLError, e:
-            try:
-                f = urlopen("http://www." + url)
-                return f
-            except URLError, e:
-                try:
-                    f = urlopen("https://www." + url)
-                    return f
-                except HTTPError, e:
-                    print("HTTPError:", e.code, url)
-                except URLError, e:
-                    print("URLError:", e.reason, url)
+    session.headers = REQUEST_HEADERS
+    try:# the request will follow redirects to https://, www., m., etc.
+        return session.get("http://" + url)
+    except requests.exceptions.RequestException as e:
+        print("Exception: ", e, url)
 
 
 def downloadFile(url, dir):
@@ -66,7 +50,7 @@ def downloadFile(url, dir):
         dir = hash.hexdigest()[:2]
         if not os.path.exists(dir):
             os.mkdir(dir)
-        buffer = f.read()
+        buffer = f.raw.read()
         ext = magic.from_buffer(buffer).split()[0].lower()
         if "html" in ext:
             ext = "html.txt"
@@ -75,12 +59,12 @@ def downloadFile(url, dir):
             local_file.write(buffer)
             local_file.close()
         with open(filename + ".hdr.txt", "wb") as local_file:
-            local_file.write(str(f.getcode()) + "\n" + str(f.info()))
+            local_file.write(str(f.status_code) + "\n")
+            for k, v in f.headers.iteritems():
+                local_file.write("{}: {}\n".format(k, v))
             local_file.close()
-    except HTTPError, e:
-        print("HTTPError:", e.code, url)
-    except URLError, e:
-        print("URLError:", e.reason, url)
+    except Exception as e:
+        print("Exception:", e, url)
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

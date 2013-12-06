@@ -50,7 +50,7 @@ def downloadFile(url, dir):
             ext = "html.txt"
         filename = dir + "/" + url + "_" + hash.hexdigest() + "." + ext
         with open(filename, "wb") as local_file:
-            local_file.write(response.text)
+            local_file.write(response.text.encode('utf8'))
             local_file.close()
         with open(filename.rstrip(".txt") + ".hdr.txt", "wb") as local_file:
             local_file.write(str(response.status_code) + "\n")

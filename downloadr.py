@@ -46,9 +46,7 @@ def downloadFile(url, dir):
         if not os.path.exists(dir):
             os.mkdir(dir)
         ext = magic.from_buffer(response.content).split()[0].lower()
-        if "html" in ext:
-            ext = "html.txt"
-        filename = dir + "/" + url + "_" + hash.hexdigest() + "." + ext
+        filename = dir + "/" + url + "_" + hash.hexdigest() + "." + ext + ".txt"
         with open(filename, "wb") as local_file:
             local_file.write(response.text.encode('utf8'))
             local_file.close()

@@ -67,16 +67,13 @@ def downloadFile(url, dir):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage:", sys.argv[0], "create|download <URL> <dir>",
-              file=sys.stderr)
-        quit()
+        sys.exit("Usage: {} create|download <URL> <dir>".format(sys.argv[0]))
     command = sys.argv[1]
     if command == "create":
         print(createDir())
     elif command == "download":
         if len(sys.argv) < 4:
-            print("Where's the URL and the directory?", file=sys.stderr)
-            quit()
+            sys.exit("Where's the URL and the directory?")
         downloadFile(sys.argv[2], sys.argv[3])
     else:
-        print("Didn't understand the command", file=sys.stderr)
+        sys.exit("Didn't understand the command")

@@ -1,13 +1,12 @@
 #!/usr/bin/python
 
 from __future__ import print_function
+from time import gmtime, strftime
 import hashlib
 import magic
 import os
 import requests
 import sys
-from time import gmtime, strftime
-# from urllib2 import HTTPError, URLError, urlopen
 
 REQUEST_HEADERS = {
     'User-Agent': ('Mozilla/5.0 (Android; Mobile; rv:25.0) '

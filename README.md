@@ -18,7 +18,7 @@ If you're on Windows, [cygwin](http://www.cygwin.com/) may be your best
 bet.
 
 If you want to fetch resources other than Alexa's top HTMLs, you can do
-that by doing something like `cat urls.txt | xargs -I % ./downloadr.py download % webdevdata.org-2013-12-06-193321/`
+that by doing something like `cat urls.txt | xargs -I % -n 1 -P64 ./downloadr.py download % webdevdata.org-2013-12-06-200358/`
 
 ## Dependencies
 

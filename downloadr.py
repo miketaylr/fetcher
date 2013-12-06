@@ -44,7 +44,6 @@ def downloadFile(url, dir):
         if url.startswith("https://"):
             url = url[8:]
         urlhost = url.split("/")[0]
-        urlpath = "/".join(url.split("/")[1:])
         response = connect(urlhost)
         hash = hashlib.md5()
         hash.update(url)

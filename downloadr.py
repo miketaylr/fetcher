@@ -39,7 +39,8 @@ def connect(url, as_is=False):
     except requests.exceptions.RequestException as e:
         print("Exception in connect: ", e, url)
 
-def get_hashdir():
+
+def get_hashdir(url):
     hash = hashlib.md5()
     hash.update(url)
     hash_dir = hash.hexdigest()[:2]
@@ -69,7 +70,6 @@ def inline_js(url, soup):
         tag.append(script.text)
         s.insert_before(comment)
         s.replace_with(tag)
-
 
 
 def download_file(url, dir):

@@ -2,6 +2,14 @@
 
 Scripts used to fetch the HTML files from top Alexa sites.
 
+Note that this is Mike Taylor's fork, which swapped in Requests for urllib2, makes it a bit more Pythonic, and inlines external JS files. This is more useful for me to do research on DOM APIs used throughout the web.
+
+#### TODO:
+
+* Tests
+* Beautify JS
+* Make it fast (took like 8 hours to download ~62,000 pages)
+
 ## Methodology
 
 * The top 1 million Alexa sites

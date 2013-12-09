@@ -33,6 +33,14 @@ def connect(url):
     except requests.exceptions.RequestException as e:
         print("Exception: ", e, url)
 
+def get_hashdir():
+    hash = hashlib.md5()
+    hash.update(url)
+    hash_dir = hash.hexdigest()[:2]
+    if not os.path.exists(hash_dir):
+        os.mkdir(hash_dir)
+    return hash_dir
+
 
 def download_file(url, dir):
     os.chdir(dir)
@@ -40,11 +48,7 @@ def download_file(url, dir):
     try:
         print("Downloading: ", url)
         response = connect(url)
-        hash = hashlib.md5()
-        hash.update(url)
-        dir = hash.hexdigest()[:2]
-        if not os.path.exists(dir):
-            os.mkdir(dir)
+        dir = get_hashdir()
         ext = magic.from_buffer(response.content).split()[0].lower()
         filename = dir + "/" + url + "_" + hash.hexdigest() + "." + ext + ".txt"
         with open(filename, "wb") as local_file:

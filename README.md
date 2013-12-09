@@ -4,6 +4,8 @@ Scripts used to fetch the HTML files from top Alexa sites.
 
 Note that this is Mike Taylor's fork, which swapped in Requests for urllib2, makes it a bit more Pythonic, and inlines external JS files. This is more useful for me to do research on DOM APIs used throughout the web.
 
+It also requests all sites as Firefox for Android, rather than as urllib2.
+
 #### TODO:
 
 * Tests

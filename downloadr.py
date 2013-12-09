@@ -19,6 +19,7 @@ REQUEST_HEADERS = {
 
 
 def create_dir():
+    '''Create and return a unique directory to hold the downloaded data.'''
     dirname = "webdevdata.org-" + strftime("%Y-%m-%d-%H%M%S", gmtime())
     os.mkdir(dirname)
     return dirname

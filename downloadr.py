@@ -18,7 +18,7 @@ REQUEST_HEADERS = {
 }
 
 
-def createDir():
+def create_dir():
     dirname = "webdevdata.org-" + strftime("%Y-%m-%d-%H%M%S", gmtime())
     os.mkdir(dirname)
     return dirname
@@ -34,7 +34,7 @@ def connect(url):
         print("Exception: ", e, url)
 
 
-def downloadFile(url, dir):
+def download_file(url, dir):
     os.chdir(dir)
     url = url.strip()
     try:
@@ -62,10 +62,10 @@ if __name__ == "__main__":
         sys.exit("Usage: {} create|download <URL> <dir>".format(sys.argv[0]))
     command = sys.argv[1]
     if command == "create":
-        print(createDir())
+        print(create_dir())
     elif command == "download":
         if len(sys.argv) < 4:
             sys.exit("Where's the URL and the directory?")
-        downloadFile(sys.argv[2], sys.argv[3])
+        download_file(sys.argv[2], sys.argv[3])
     else:
         sys.exit("Didn't understand the command")

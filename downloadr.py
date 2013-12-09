@@ -65,7 +65,7 @@ def inline_js(url, soup):
         # All other relative URIs (../foo.js, js/foo.js)
         else:
             script = connect(urljoin("http://" + base, s['src']))
-        tag = soup.new_tag("xscript")
+        tag = soup.new_tag("script")
         comment = soup.new_string("inlined by fetcher", Comment)
         tag.append(script.text)
         s.insert_before(comment)

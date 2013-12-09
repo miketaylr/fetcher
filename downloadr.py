@@ -48,12 +48,10 @@ def downloadFile(url, dir):
         ext = magic.from_buffer(response.content).split()[0].lower()
         filename = dir + "/" + url + "_" + hash.hexdigest() + "." + ext + ".txt"
         with open(filename, "wb") as local_file:
-            local_file.write(response.text.encode('utf8'))
-            local_file.close()
-        with open(filename.rstrip(".txt") + ".hdr.txt", "wb") as local_file:
             local_file.write(str(response.status_code) + "\n")
             for k, v in response.headers.iteritems():
                 local_file.write("{}: {}\n".format(k, v))
+            local_file.write("\n" + response.text.encode('utf8'))
             local_file.close()
     except Exception as e:
         print("Exception:", e, url)

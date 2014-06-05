@@ -22,7 +22,7 @@ and their HTTP headers using a thread pool (to minimize waiting).
 
 ## Usage
 
-If your on Linux or OSX, simply run `./getData.sh` and you should be
+If you're on Linux or OSX, simply run `./getData.sh` and you should be
 good to go.
 If you're on Windows, [cygwin](http://www.cygwin.com/) may be your best
 bet.

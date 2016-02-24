@@ -1,19 +1,24 @@
 #!/usr/bin/python
 
-from __future__ import print_function
-from bs4 import BeautifulSoup, Comment
-from time import gmtime, strftime
-from urlparse import urljoin, urlparse
 import hashlib
-import magic
 import os
-import requests
 import sys
+from time import gmtime, strftime
+from urlparse import urljoin
+
+# I don't even.
+sys.path.insert(0, ('/Users/miket/dev/compat/fetcher/env/'
+                    'lib/python2.7/site-packages'))
+
+from bs4 import BeautifulSoup, Comment
+import jsbeautifier
+import requests
 
 REQUEST_HEADERS = {
-    'User-Agent': ('Mozilla/5.0 (Android; Mobile; rv:25.0) '
-                   'Gecko/25.0 Firefox/25.0'),
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'User-Agent': ('Mozilla/5.0 (Linux; Android 6.0.1; Nexus 6P Build/MMB29Q) '
+                   'AppleWebKit/537.36 (KHTML, like Gecko) '
+                   'Chrome/48.0.2564.95 Mobile Safari/537.36'),
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',  # nopep8
     'Accept-Language': 'en-US,en;q=0.5',
     'Accept-Encoding': 'gzip, deflate',
     'Connection': 'keep-alive'
@@ -22,22 +27,26 @@ REQUEST_HEADERS = {
 
 def create_dir():
     '''Create and return a unique directory to hold the downloaded data.'''
-    dirname = "webdevdata.org-" + strftime("%Y-%m-%d-%H%M%S", gmtime())
+    dirname = "fetcher-data-" + strftime("%Y-%m-%d", gmtime())
     os.mkdir(dirname)
     return dirname
 
 
-def connect(url, as_is=False):
+def connect(url):
     session = requests.Session()
     session.headers = REQUEST_HEADERS
+    session.max_redirects = 5
     session.timeout = 3
+    if not url.startswith('http'):
+        url = "http://" + url
     try:  # Request will follow redirects to https://, www., m., etc.
-        if as_is:
-            return session.get(url)
-        else:
-            return session.get("http://" + url)
-    except requests.exceptions.RequestException as e:
-        print("Exception in connect: ", e, url)
+        res = session.get(url)
+        if str(res.status_code).startswith(('4', '5')):
+            return 'Non 2XX or 3XX response'
+        return res.text
+    except Exception as e:
+        print("Problem fetching {0}!".format(url), e)
+        return 'Failed due to an exception, (timeout, ssl, redirects) oops.'
 
 
 def get_hashdir(url):
@@ -50,45 +59,64 @@ def get_hashdir(url):
 
 
 def inline_js(url, soup):
+    # jsbeautifier options
+    # defaults at https://github.com/beautify-web/js-beautify#options
+    opts = jsbeautifier.default_options()
+    opts.indent_size = 2
+    opts.preserve_newlines = False
+    script_uri = ''
+
+    # beautify all the inline scripts
+    for s in soup.find_all("script", src=False):
+        if s.string:
+            s.string = "\n" + jsbeautifier.beautify(s.string, opts)
+
+    # inline and beautify external scripts
     for s in soup.find_all("script", src=True):
-        base_elm = soup.find("base", href=True)
-        if base_elm:
-            base = base_elm['href']
-        else:
-            base = url
-        # Protocol-relative URL, e.g., //foo.com/bar.js
-        if s['src'].startswith("//"):
-            script = connect(s['src'][2:])
-        # Absolute URI, e.g., http://foo.com/bar.js
-        elif urlparse(s['src'])[0] in ('http', 'https'):
-            script = connect(s['src'], as_is=True)
-        # All other relative URIs (../foo.js, js/foo.js)
-        else:
-            script = connect(urljoin("http://" + base, s['src']))
-        tag = soup.new_tag("script")
-        comment = soup.new_string("inlined by fetcher", Comment)
-        tag.append(script.text)
-        s.insert_before(comment)
-        s.replace_with(tag)
+        script = ''
+        try:
+            base_elm = soup.find("base", href=True)
+            if base_elm:
+                base = base_elm['href']
+            else:
+                # this assumes a http -> https redirect is in place.
+                base = "http://" + url
+            # Protocol-relative URL, e.g., //foo.com/bar.js
+            if s['src'] and s['src'].startswith("//"):
+                script_uri = s['src'][2:]
+                script = connect(script_uri)
+            # Absolute URI, e.g., http(s)://foo.com/bar.js
+            elif s['src'].lower().startswith('http'):
+                script_uri = s['src']
+                script = connect(script_uri)
+            # All other relative URIs (../foo.js, js/foo.js)
+            elif s['src'][0] == '/' and s['src'][1] != '/':
+                script_uri = urljoin(base, s['src'])
+                script = connect(script_uri)
+            tag = soup.new_tag("script")
+            tag.append("\n" + jsbeautifier.beautify("// inlined: {0}\n".format(
+                script_uri) + script, opts))
+            s.insert_before("\n")
+            s.replace_with(tag)
+        except Exception as e:
+            print("XXXxxxxEBugss xception!!!1: ", e)
+
+            # TODO: async IO?
+            # https://github.com/kennethreitz/grequest
 
 
 def download_file(url, dir):
     os.chdir(dir)
     url = url.strip()
     try:
-        print("Downloading: ", url)
         response = connect(url)
         dir = get_hashdir(url)
-        ext = magic.from_buffer(response.content).split()[0].lower()
-        filename = dir + "/" + url + "." + ext + ".txt"
+        filename = dir + "/" + url + ".html"
+        print("Fetching {0}".format(filename))
         with open(filename, "wb") as local_file:
-            local_file.write("Response status: " +
-                             str(response.status_code) + "\n")
-            for k, v in response.headers.iteritems():
-                local_file.write("{}: {}\n".format(k, v))
-            soup = BeautifulSoup(response.text)
+            soup = BeautifulSoup(response, "lxml")
             inline_js(url, soup)
-            local_file.write("\n" + str(soup))
+            local_file.write(str(soup))
             local_file.close()
     except Exception as e:
         print("Exception:", e, url)

@@ -34,6 +34,11 @@ that by doing something like `cat urls.txt | xargs -I % -n 1 -P64 ./downloadr.py
 * curl
 * zcat
 * [python-magic](https://github.com/ahupp/python-magic)
+* lxml
+
+Don't forget to install libmagic for Python magic to work:
+
+https://github.com/ahupp/python-magic#dependencies
 
 ## Results
 

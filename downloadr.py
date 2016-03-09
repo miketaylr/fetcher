@@ -3,7 +3,7 @@
 import hashlib
 import os
 import sys
-from time import gmtime, strftime
+from time import gmtime, strftime, sleep
 from urlparse import urljoin
 
 # I don't even.
@@ -105,21 +105,22 @@ def inline_js(url, soup):
             # https://github.com/kennethreitz/grequest
 
 
-def download_file(url, dir):
-    os.chdir(dir)
-    url = url.strip()
+def download_file(ordered_domain, directory):
+    rank, domain = ordered_domain.split(',')
+    os.chdir(directory)
+    domain = domain.strip()
     try:
-        response = connect(url)
-        dir = get_hashdir(url)
-        filename = dir + "/" + url + ".html"
+        response = connect(domain)
+        directory = get_hashdir(domain)
+        filename = "{0}/{1}-{2}.html".format(directory, rank, domain)
         print("Fetching {0}".format(filename))
         with open(filename, "wb") as local_file:
             soup = BeautifulSoup(response, "lxml")
-            inline_js(url, soup)
+            inline_js(domain, soup)
             local_file.write(str(soup))
             local_file.close()
     except Exception as e:
-        print("Exception:", e, url)
+        print("Exception:", e, domain)
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -131,5 +132,6 @@ if __name__ == "__main__":
         if len(sys.argv) < 4:
             sys.exit("Where's the URL and the directory?")
         download_file(sys.argv[2], sys.argv[3])
+        sleep(0.01)
     else:
         sys.exit("Didn't understand the command")
